@@ -1,67 +1,54 @@
 <?php
-
-namespace Hover\Effect\Block\Product\ListProduct;
-
-class ListProduct extends \Magento\Catalog\Block\Product\ListProduct
+namespace Hover\Effect\Block\Product;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Block\Product\AbstractProduct;
+use Magento\Catalog\Block\Product\AwareInterface as ProductAwareInterface;
+class ListProduct extends \Magento\Catalog\Block\Product\ListProduct implements ProductAwareInterface
 {
+    protected $_customerSession;
+    protected $categoryFactory;
+    private $product;
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Catalog\Model\Session $catalogSession,
-        \Magento\Catalog\Model\Config $catalogConfig,
-        \Magento\Catalog\Model\Product\ProductList\Toolbar $toolbarModel,
-        \Magento\Framework\Url\EncoderInterface $urlEncoder,
-        \Magento\Catalog\Helper\Product\ProductList $productListHelper,
+        \Magento\Catalog\Block\Product\Context $context,
         \Magento\Framework\Data\Helper\PostHelper $postDataHelper,
-        \Kaushikofficial\Outofstocklast\Helper\Data $dataHelper,
+        \Magento\Catalog\Model\Layer\Resolver $layerResolver,
+        \Magento\Catalog\Api\CategoryRepositoryInterface $categoryRepository,
+        \Magento\Framework\Url\Helper\Data $urlHelper,
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Catalog\Model\CategoryFactory $categoryFactory,
         array $data = []
-    )
-    {
-        $this->dataHelper = $dataHelper;
+    ) {
+        $this->_customerSession = $customerSession;
+        $this->categoryFactory = $categoryFactory;
+        //   $this->_helper = $helper;
         parent::__construct(
             $context,
-            $catalogSession,
-            $catalogConfig,
-            $toolbarModel,
-            $urlEncoder,
-            $productListHelper,
             $postDataHelper,
+            $layerResolver,
+            $categoryRepository,
+            $urlHelper,
             $data
         );
+
     }
-
-    /**
-     * Set collection to pager
-     *
-     * @param \Magento\Framework\Data\Collection $collection
-     * @return $this
-     */
-    public function setCollection($collection)
+    public function setProduct(ProductInterface $product)
     {
-        $this->_collection = $collection;
-
-        $this->_collection->setCurPage($this->getCurrentPage());
-
-        // we need to set pagination only if passed value integer and more that 0
-        $limit = (int)$this->getLimit();
-        if ($limit) {
-            $this->_collection->setPageSize($limit);
-        }
-
-        if ($this->dataHelper->isModuleEnabled()) {
-            $collection->getSelect()->order("stock_status DESC");
-        }
-
-        if ($this->getCurrentOrder()) {
-            if ($this->getCurrentOrder() == 'position') {
-                $this->_collection->addAttributeToSort(
-                    $this->getCurrentOrder(),
-                    $this->getCurrentDirection()
-                )->addAttributeToSort('entity_id', $this->getCurrentDirection());
-            } else {
-                $this->_collection->setOrder($this->getCurrentOrder(), $this->getCurrentDirection());
+        $this->product = $product;
+        return $this;
+    }
+    public function getProduct()
+    {
+        if (is_null($this->product)) {
+            $this->product = $this->registry->registry('product');
+            if (!$this->product->getId()) {
+                throw new LocalizedException(__('Failed to initialize product'));
             }
         }
-
-        return $this;
+        return $this->product;
+    }
+    public function getProductStatus()
+    {
+        return $this->getProduct()->getStatus();
     }
 }
