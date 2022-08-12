@@ -1,0 +1,49 @@
+<div class="product-image">
+    <div class="product-label">
+        <?php
+        $_imagehelper = $this->helper('Magento\Catalog\Helper\Image');
+        $imagehover = 'category_page_list_hover';
+        $newFromDate = $_product->getNewsFromDate();
+        $newToDate = $_product->getNewsToDate();
+        $now = date("Y-m-d H:m:s");
+        // Get the Special Price
+        $specialprice = $_product->getSpecialPrice();
+        // Get the Special Price FROM date
+        $specialPriceFromDate = $_product->getSpecialFromDate();
+        // Get the Special Price TO date
+        $specialPriceToDate = $_product->getSpecialToDate();
+        ?>
+        <?php if($specialprice && (($specialPriceFromDate <= $now && $specialPriceToDate >= $now) || (($specialPriceFromDate <= $now && $specialPriceFromDate != NULL) && $specialPriceToDate  == ''))): ?>
+            <span class="sale"><?php echo __('Wras'); ?></span>
+        <?php endif; ?>
+        <?php if((($newFromDate <= $now && $newToDate >= $now) || (($newFromDate <= $now && $newFromDate != NULL) && $newToDate == NULL))): ?>
+            <span class="new"><?php echo __('New'); ?></span>
+        <?php endif; ?>
+    </div>
+    <div class="product-item-image" data-container="product-grid">
+        <?php
+        $productImage = $block->getImage($_product, $imageDisplayArea);
+        if ($pos != null) {
+            $position = ' style="left:' . $productImage->getWidth() . 'px;'
+                . 'top:' . $productImage->getHeight() . 'px;"';
+        }
+        ?>
+        <?php // Product Image ?>
+        <a class="product-item-photo-focus" href="<?= $block->escapeUrl($_product->getProductUrl()) ?>">
+            <?= $productImage->toHtml() ?>
+        </a>
+        <?php //Product Image Hovered ?>
+        <?php
+        $productImageHover = $_imageHelper->init($_product, $_imageHover);
+        if ($pos != null) {
+            $position = ' style="left:' . $productImage->getWidth() . 'px;'
+                . 'top:' . $productImage->getHeight() . 'px;"';
+        }
+        ?>
+        <?php if (strpos($productImageHover->getUrl(), 'Magento_Catalog/images/product/placeholder/hover.jpg') == false) { ?>
+            <a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>" class="product-item-photo-hovered" tabindex="-1">
+                <img src="<?php echo $productImageHover->getUrl(); ?>" class="photo-image-hover" width="<?php echo $productImage->getWidth(); ?>" height="<?php echo $productImage->getWidth() ?>" alt="<?php echo $productImageHover->getLabel() ?>"/>
+            </a>
+        <?php } ?>
+    </div>
+</div>
